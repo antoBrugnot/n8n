@@ -74,6 +74,7 @@ services:
       # Configuration Ollama
       OLLAMA_HOST: 0.0.0.0
       OLLAMA_ORIGINS: "*"
+      OLLAMA_PORT: "11434"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
       interval: 30s

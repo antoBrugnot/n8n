@@ -74,10 +74,11 @@ if [ $? -eq 0 ]; then
     echo ""
     print_status "n8n sera accessible sur : http://localhost:5678"
     print_status "Ollama sera accessible sur : http://localhost:11435"
+    print_status "Dashboard Qdrant sera accessible sur : http://localhost:6333/dashboard#/"
     print_status "Attendez quelques secondes pour que tous les services soient complètement démarrés"
     echo ""
     print_status "Pour configurer Ollama avec un modèle : ./setup-ollama.sh"
-    print_status "Pour voir les logs : $COMPOSE_CMD logs -f n8n"
+    print_status "Pour voir les logs n8n : $COMPOSE_CMD logs -f n8n"
     print_status "Pour arrêter : $COMPOSE_CMD stop"
 else
     print_error "Erreur lors du démarrage des services !"

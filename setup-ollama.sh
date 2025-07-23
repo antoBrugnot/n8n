@@ -49,31 +49,27 @@ print_success "Ollama est prêt !"
 # Modèles recommandés pour l'assistance utilisateur
 echo ""
 print_status "Modèles recommandés pour la gestion d'emails d'assistance :"
-echo "1. llama3.2:3b (Léger, rapide, français correct)"
-echo "2. llama3.1:8b (Plus puissant, meilleur français)"
-echo "3. mistral:7b (Excellent pour le français)"
-echo "4. qwen2.5:7b (Polyglotte, bon pour support multilingue)"
+echo "1. qwen2.5:3b: (Léger, rapide, français correct)"
+echo "2. nomic-embed-text (Spécialement conçu pour l'embedding, très rapide sur CPU)"
+echo "3. granite3.2-vision:2b (Excellent pour 'extraction de documents)"
 echo ""
 
-read -p "Quel modèle voulez-vous installer ? (1-4, défaut: 1) " choice
+read -p "Quel modèle voulez-vous installer ? (1-3, défaut: 1) " choice
 choice=${choice:-1}
 
 case $choice in
     1)
-        MODEL="llama3.2:3b"
+        MODEL="qwen2.5:3b"
         ;;
     2)
-        MODEL="llama3.1:8b"
+        MODEL="nomic-embed-text"
         ;;
     3)
-        MODEL="mistral:7b"
-        ;;
-    4)
-        MODEL="qwen2.5:7b"
+        MODEL="granite3.2-vision:2b"
         ;;
     *)
         print_warning "Choix invalide, utilisation du modèle par défaut"
-        MODEL="llama3.2:3b"
+        MODEL="qwen2.5:3b"
         ;;
 esac
 
@@ -82,13 +78,7 @@ print_warning "⚠️  Cela peut prendre plusieurs minutes selon votre connexion
 
 if $COMPOSE_CMD exec ollama ollama pull $MODEL; then
     print_success "Modèle $MODEL installé avec succès !"
-    
-    # Mettre à jour le fichier .env
-    if grep -q "OLLAMA_MODEL=" .env; then
-        sed -i "s/OLLAMA_MODEL=.*/OLLAMA_MODEL=$MODEL/" .env
-        print_status "Fichier .env mis à jour avec le modèle $MODEL"
-    fi
-    
+
     echo ""
     print_status "Test du modèle..."
     $COMPOSE_CMD exec ollama ollama run $MODEL "Bonjour, peux-tu m'aider à rédiger une réponse professionnelle pour un email d'assistance ?"

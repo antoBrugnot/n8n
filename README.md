@@ -1,6 +1,6 @@
 # n8n Instance Locale avec Podman Compose et PostgreSQL
 
-Ce projet vous permet de déployer une instance locale de n8n avec PostgreSQL comme base de données en utilisant Podman et Podman Compose.
+Ce projet vous permet de déployer une instance locale de n8n avec PostgreSQL comme base de données, Ollama pour les modeles locaux et qdrant en vector store en utilisant Podman et Podman Compose.
 
 ## 📋 Prérequis
 
