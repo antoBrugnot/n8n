@@ -1,6 +1,12 @@
 # Fichiers de configuration et secrets
 .env.local
 .env.production
+.env
+
+# Credentials avec des données réelles (gardez les exemples)
+credentials/*_real.json
+credentials/*_prod.json
+credentials/*_production.json
 
 # Logs
 *.log

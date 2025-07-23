@@ -131,20 +131,39 @@ L'instance utilise PostgreSQL avec les caractéristiques suivantes :
 
 ```
 n8n/
-├── docs/                # Documentation et images
-├── .github/             # Instructions et configurations GitHub
-├── workflows/           # Workflows n8n (exemples et templates)
-├── vector-store-qdrant/ # Stockage des vecteurs Qdrant
-├── docker-compose.yml   # Configuration des services
-├── .env                 # Variables d'environnement (à personnaliser !)
-├── init-data.sh         # Script d'initialisation PostgreSQL
-├── clean.sh             # Script de nettoyage
-├── start.sh             # Script de démarrage
-├── stop.sh              # Script d'arrêt
-├── setup-ollama.sh      # Script d'installation des modèles Ollama
-├── generate-key.sh      # Script de génération de clé de chiffrement
-└── README.md            # Ce fichier
+├── docs/                    # Documentation et images
+├── .github/                 # Instructions et configurations GitHub
+├── workflows/               # Workflows n8n (import automatique)
+│   ├── Indexation.json
+│   ├── Mail.json
+│   └── Search in Index.json
+├── credentials/             # Credentials n8n (import automatique)
+│   ├── qdrant_credentials.json
+│   ├── ollama_credentials.json
+├── vector-store-qdrant/     # Stockage des vecteurs Qdrant
+├── backups/                 # Sauvegardes de la base de données
+├── docker-compose.yml       # Configuration des services
+├── .env                     # Variables d'environnement (à personnaliser !)
+├── init-data.sh             # Script d'initialisation PostgreSQL
+├── import-n8n-data.sh       # Script d'import manuel des données
+├── clean.sh                 # Script de nettoyage
+├── start.sh                 # Script de démarrage (avec option --import)
+├── stop.sh                  # Script d'arrêt
+├── setup-ollama.sh          # Script d'installation des modèles Ollama
+├── generate-key.sh          # Script de génération de clé de chiffrement
+└── README.md                # Ce fichier
 ```
+## Modèles testés
+
+- Ollama : `qwen2.5:3b` (best tool support, multilingual)
+- Qdrant : `nomic-embed-text` (embedded for QDrant VectorStore, 768 dimensions, CPU-optimized)
+
+## Workflows testés
+
+- Indexation de documents
+- Recherche sémantique
+- Automatisation de classification des emails
+
 
 ## 🛠️ Commandes utiles
 
@@ -180,6 +199,59 @@ podman compose exec -T postgres psql -U n8n n8n < backup_n8n.sql
 ```
 
 ## 🔧 Configuration avancée
+
+### Import automatique des workflows et credentials
+
+Ce projet inclut un système d'import automatique pour vos workflows et credentials :
+
+#### 📁 Structure des dossiers
+```
+workflows/          # Vos fichiers JSON de workflows
+├── Indexation.json
+├── Mail.json
+└── Search in Index.json
+
+credentials/        # Vos credentials pré-configurés
+├── qdrant_credentials.json
+└── ollama_credentials.json
+```
+
+#### 🚀 Démarrage avec import automatique
+```bash
+# Démarrer les services ET importer automatiquement les données
+./start.sh --import
+```
+
+#### 📥 Import manuel des données
+```bash
+# Si les services sont déjà démarrés
+./import-n8n-data.sh
+```
+
+#### 🔐 Credentials pré-configurés
+
+Le projet inclut des credentials pré-configurés pour :
+
+- **Qdrant Local** : Connexion à l'instance Qdrant locale (http://qdrant:6333)
+- **Ollama Local** : Connexion à l'instance Ollama locale (http://ollama:11434)
+
+Ces credentials sont automatiquement importés au premier démarrage.
+
+#### ➕ Ajouter vos propres workflows et credentials
+
+1. **Pour les workflows** : Placez vos fichiers `.json` dans le dossier `workflows/`
+2. **Pour les credentials** : Créez vos fichiers JSON dans le dossier `credentials/` en suivant ce format :
+
+```json
+{
+  "name": "Mon Credential",
+  "type": "typeDeCredential",
+  "data": {
+    "propriété1": "valeur1",
+    "propriété2": "valeur2"
+  }
+}
+```
 
 ### Variables d'environnement importantes
 

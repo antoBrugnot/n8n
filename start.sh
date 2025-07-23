@@ -24,6 +24,35 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Options
+IMPORT_DATA=false
+
+# Parse des arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --import)
+            IMPORT_DATA=true
+            shift
+            ;;
+        -h|--help)
+            echo "Usage: $0 [options]"
+            echo "Options:"
+            echo "  --import    Import automatiquement les workflows et credentials après le démarrage"
+            echo "  -h, --help  Affiche cette aide"
+            exit 0
+            ;;
+        *)
+            print_error "Option inconnue: $1"
+            echo "Utilisez -h ou --help pour voir les options disponibles"
+            exit 1
+            ;;
+    esac
+done
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
 # Vérifier que le fichier .env existe
 if [ ! -f ".env" ]; then
     print_error "Le fichier .env n'existe pas !"
@@ -76,6 +105,23 @@ if [ $? -eq 0 ]; then
     print_status "Ollama sera accessible sur : http://localhost:11435"
     print_status "Dashboard Qdrant sera accessible sur : http://localhost:6333/dashboard#/"
     print_status "Attendez quelques secondes pour que tous les services soient complètement démarrés"
+    echo ""
+    
+    # Import automatique des données si demandé
+    if [ "$IMPORT_DATA" = true ]; then
+        print_status "Import automatique des workflows et credentials..."
+        sleep 10  # Attendre que n8n soit complètement démarré
+        
+        if [ -f "./import-n8n-data.sh" ]; then
+            ./import-n8n-data.sh
+        else
+            print_warning "Script d'import non trouvé, import manuel nécessaire"
+        fi
+    else
+        print_status "💡 Pour importer vos workflows et credentials automatiquement: ./start.sh --import"
+        print_status "💡 Pour importer manuellement plus tard: ./import-n8n-data.sh"
+    fi
+    
     echo ""
     print_status "Pour configurer Ollama avec un modèle : ./setup-ollama.sh"
     print_status "Pour voir les logs n8n : $COMPOSE_CMD logs -f n8n"

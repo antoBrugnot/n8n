@@ -8,8 +8,8 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.1,
       "position": [
-        -420,
-        -140
+        -416,
+        -144
       ],
       "id": "6e843d81-d29c-42d6-a6c0-3596fbd35299",
       "name": "When chat message received",
@@ -17,27 +17,29 @@
     },
     {
       "parameters": {
+        "promptType": "define",
+        "text": "=Repond a cette question en utilisant le vector store en outil : {{ $json.chatInput }}",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        -200,
-        -140
+        -208,
+        -144
       ],
       "id": "f94db9ca-9615-44a1-b12e-2ef75daacf9c",
       "name": "AI Agent"
     },
     {
       "parameters": {
-        "model": "llama3.2:3b",
+        "model": "qwen2.5:3b",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        -280,
-        100
+        -288,
+        112
       ],
       "id": "f7b8b1cd-67b2-4cb2-a967-54c13d4d1edd",
       "name": "Ollama Chat Model",
@@ -53,8 +55,8 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        -140,
-        100
+        -144,
+        112
       ],
       "id": "5d1a9d3a-d72e-4bcc-ba20-e8aa79a91800",
       "name": "Simple Memory"
@@ -66,8 +68,8 @@
       "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
       "typeVersion": 1.1,
       "position": [
-        100,
-        40
+        112,
+        48
       ],
       "id": "88cbc989-e0c4-460d-b095-fc4f2ee54da1",
       "name": "Answer questions with a vector store"
@@ -85,8 +87,8 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
       "typeVersion": 1.3,
       "position": [
-        60,
-        280
+        64,
+        288
       ],
       "id": "4fa2df69-48a1-449b-826d-650c49716055",
       "name": "Qdrant Vector Store",
@@ -99,12 +101,12 @@
     },
     {
       "parameters": {
-        "model": "llama3.2:3b"
+        "model": "nomic-embed-text:latest"
       },
       "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
       "typeVersion": 1,
       "position": [
-        60,
+        64,
         400
       ],
       "id": "fbcdbed9-84bd-441a-a2cd-5e0505c1942f",
@@ -118,13 +120,13 @@
     },
     {
       "parameters": {
-        "model": "llama3.2:3b",
+        "model": "qwen2.5:3b",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        260,
+        272,
         160
       ],
       "id": "8b559e1a-0335-47c4-8de2-46c58919fe90",
@@ -221,7 +223,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "4e0381e9-3513-46c7-bf05-e5a42d463fde",
+  "versionId": "45660560-28ab-4f3a-8547-8f25e42e1a64",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "35e53b4e1c0deaab7d871949fef5124ac4432fe9906011927482989de82c5430"

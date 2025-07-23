@@ -10,7 +10,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        -40,
+        -48,
         0
       ],
       "id": "6970dc5f-f146-4450-b95f-57540ca451bc",
@@ -32,7 +32,7 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        -380,
+        -384,
         0
       ],
       "id": "6a5ab1c8-9e08-4b0a-b632-dd69eba17393",
@@ -53,7 +53,7 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
       "typeVersion": 1.3,
       "position": [
-        180,
+        192,
         0
       ],
       "id": "ffea1905-bf6e-430b-bc96-5e46f53d622b",
@@ -74,21 +74,21 @@
       "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
       "typeVersion": 1.1,
       "position": [
-        280,
-        260
+        288,
+        272
       ],
       "id": "bcf58828-94a0-42a6-8df8-c653ac241820",
       "name": "Documents Data Loader"
     },
     {
       "parameters": {
-        "model": "llama3.2:3b"
+        "model": "nomic-embed-text:latest"
       },
       "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
       "typeVersion": 1,
       "position": [
-        140,
-        260
+        144,
+        272
       ],
       "id": "63cb4e3a-c22e-43aa-88e7-7bb3f8fbdeb8",
       "name": "Embeddings Ollama",
@@ -151,7 +151,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "43eccab4-f97e-41c0-9e1f-9c30b09a6724",
+  "versionId": "69449e18-fa45-429a-ad61-473802064b8a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "35e53b4e1c0deaab7d871949fef5124ac4432fe9906011927482989de82c5430"
