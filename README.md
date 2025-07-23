@@ -6,6 +6,10 @@ Ce projet vous permet de déployer une instance locale de n8n avec PostgreSQL co
 
 - Podman ou Docker récents installés sur votre système
 
+## Talk (slides)
+
+- [n8n AI Playground](https://antobrugnot.github.io/n8n/)
+
 ## 🚀 Installation et Démarrage
 
 ### 1. Configuration
@@ -56,6 +60,12 @@ Utilisez les identifiants configurés dans `.env` :
 - Utilisateur : `admin` (par défaut)
 - Mot de passe : celui défini dans `N8N_BASIC_AUTH_PASSWORD`
 
+## 🛠️ Services inclus
+
+![Credentials Ollama](./docs/img/credentials_ollama.png)
+
+![Credentials QDrant](./docs/img/credentials_qdrant.png)
+
 ## 🗄️ Base de données
 
 L'instance utilise PostgreSQL avec les caractéristiques suivantes :
@@ -68,9 +78,18 @@ L'instance utilise PostgreSQL avec les caractéristiques suivantes :
 
 ```
 n8n/
-├── docker-compose.yml    # Configuration des services
-├── .env                  # Variables d'environnement (à personnaliser !)
+├── docs/                # Documentation et images
+├── .github/             # Instructions et configurations GitHub
+├── workflows/           # Workflows n8n (exemples et templates)
+├── vector-store-qdrant/ # Stockage des vecteurs Qdrant
+├── docker-compose.yml   # Configuration des services
+├── .env                 # Variables d'environnement (à personnaliser !)
 ├── init-data.sh         # Script d'initialisation PostgreSQL
+├── clean.sh             # Script de nettoyage
+├── start.sh             # Script de démarrage
+├── stop.sh              # Script d'arrêt
+├── setup-ollama.sh      # Script d'installation des modèles Ollama
+├── generate-key.sh      # Script de génération de clé de chiffrement
 └── README.md            # Ce fichier
 ```
 
