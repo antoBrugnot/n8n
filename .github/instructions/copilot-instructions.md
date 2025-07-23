@@ -41,7 +41,6 @@ Configuration follows dual-level security:
 
 ### Chat Model Selection
 - **Lightweight**: `qwen2.5:3b` (best tool support, multilingual)
-- **Ultra-light**: `gemma2:2b` (minimal resource usage)
 - **Important**: Models are containerized in Ollama, not n8n
 
 ## Development Workflows
@@ -50,7 +49,6 @@ Configuration follows dual-level security:
 1. Use `setup-ollama.sh` for interactive selection
 2. Verify model compatibility: embedding models ≠ chat models
 3. Update Qdrant vector dimensions to match embedding model
-4. Test with `test-ollama.sh` before production use
 
 ### Database Operations
 ```bash
@@ -122,6 +120,6 @@ When modifying this stack:
 - **Update both internal and external port mappings** when adding services
 - **Test AI workflows end-to-end** after model changes
 - **Document vector dimensions** when adding new embedding models
-- **Use structured prompts** following examples in `ollama-prompts.md`
+- **Use `.env` for sensitive data** and never commit with real credentials
 
 The architecture prioritizes local deployment, data privacy, and CPU-optimized AI models suitable for self-hosted environments.
