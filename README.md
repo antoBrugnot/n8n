@@ -2,6 +2,50 @@
 
 Ce projet vous permet de déployer une instance locale de n8n avec PostgreSQL comme base de données, Ollama pour les modeles locaux et qdrant en vector store en utilisant Podman et Podman Compose.
 
+## Architecture
+
+```mermaid
+flowchart TD
+    User[👤 Utilisateur] --> n8n[🔄 n8n<br/>Automation Platform]
+    
+    n8n --> |Requêtes AI/LLM| Ollama[🧠 Ollama<br/>Local LLM Server<br/>Port 11434]
+    n8n --> |Stockage/Recherche<br/>de vecteurs| Qdrant[🔍 Qdrant<br/>Vector Database<br/>Port 6333]
+    n8n --> |Données relationnelles| PostgreSQL[🗄️ PostgreSQL<br/>Database<br/>Port 5432]
+    
+    Ollama --> |Réponses générées| n8n
+    Qdrant --> |Résultats de recherche<br/>sémantique| n8n
+    PostgreSQL --> |Données workflow| n8n
+    
+    n8n --> |Résultats finaux| User
+    
+    subgraph "🐳 Infrastructure Podman"
+        Ollama
+        Qdrant
+        PostgreSQL
+        n8n
+    end
+    
+    classDef userClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef n8nClass fill:#fff3e0,stroke:#e65100,stroke-width:3px
+    classDef aiClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef dbClass fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    
+    class User userClass
+    class n8n n8nClass
+    class Ollama aiClass
+    class Qdrant,PostgreSQL dbClass
+```
+
+Ce diagramme illustre l'architecture de votre playground IA n8n local :
+
+- **👤 L'utilisateur** interagit avec n8n via l'interface web (port 5678)
+- **🔄 n8n** orchestre les workflows et coordonne les interactions avec les autres services
+- **🧠 Ollama** fournit les capacités de modèles de langage locaux (LLM) sur le port 11434
+- **🔍 Qdrant** gère le stockage et la recherche vectorielle pour les embeddings sur le port 6333
+- **🗄️ PostgreSQL** stocke les données relationnelles des workflows et métadonnées sur le port 5432
+
+Tous ces services s'exécutent dans des conteneurs Podman et communiquent via un réseau Docker interne.
+
 ## 📋 Prérequis
 
 - Podman ou Docker récents installés sur votre système
@@ -165,6 +209,8 @@ Pour un environnement de production, considérez :
 - [Documentation officielle n8n](https://docs.n8n.io/)
 - [Guide d'installation Docker](https://docs.n8n.io/hosting/installation/docker/)
 - [Configuration n8n](https://docs.n8n.io/hosting/configuration/)
+- [Documentation QDrant](https://qdrant.tech/documentation)
+- [Documentation Ollama](https://ollama.com/docs)
 
 ## 🆘 Résolution de problèmes
 
