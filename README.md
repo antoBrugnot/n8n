@@ -66,6 +66,15 @@ Utilisez les identifiants configurés dans `.env` :
 
 ![Credentials QDrant](./docs/img/credentials_qdrant.png)
 
+## 🌐 Accès dashboard QDrant
+
+Le dashboard QDrant est accessible à l'adresse :
+
+**http://localhost:6333/dashboard#/welcome**
+
+Pas d'authentification requise.
+
+
 ## 🗄️ Base de données
 
 L'instance utilise PostgreSQL avec les caractéristiques suivantes :
