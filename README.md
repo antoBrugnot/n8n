@@ -1,11 +1,10 @@
-# n8n Instance Locale avec Podman Compose et PostgreSQL
+# Playgroud IA n8n Local
 
 Ce projet vous permet de déployer une instance locale de n8n avec PostgreSQL comme base de données, Ollama pour les modeles locaux et qdrant en vector store en utilisant Podman et Podman Compose.
 
 ## 📋 Prérequis
 
-- Podman installé sur votre système
-- Podman Compose installé (ou docker-compose compatible)
+- Podman ou Docker récents installés sur votre système
 
 ## 🚀 Installation et Démarrage
 
