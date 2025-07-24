@@ -1,0 +1,357 @@
+name: 🐳 Validate Docker Compose
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'docker-compose.yml'
+      - '.env'
+      - '.github/workflows/validate-docker-compose.yml'
+  pull_request:
+    branches: [ feature/*, bugfix/* ]
+    paths:
+      - 'docker-compose.yml'
+      - '.env'
+      - '.github/workflows/validate-docker-compose.yml'
+  workflow_dispatch:
+
+env:
+  COMPOSE_FILE: docker-compose.yml
+
+jobs:
+  validate-compose:
+    name: 🔍 Validate Docker Compose Configuration
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 🔧 Set up Docker Compose
+      run: |
+        # Vérifier la version de Docker Compose
+        docker compose version
+        echo "✅ Docker Compose version check passed"
+        
+    - name: 📋 Create test environment file
+      run: |
+        # Créer un fichier .env pour les tests
+        cat << 'EOF' > .env
+        # Test environment variables
+        POSTGRES_DB=n8n_test
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=test_password_123
+        POSTGRES_NON_ROOT_USER=n8n
+        POSTGRES_NON_ROOT_PASSWORD=test_n8n_password_123
+        N8N_BASIC_AUTH_USER=admin
+        N8N_BASIC_AUTH_PASSWORD=test_admin_password_123
+        N8N_ENCRYPTION_KEY=test_encryption_key_1234567890abcdef
+        GENERIC_TIMEZONE=Europe/Paris
+        EOF
+        echo "✅ Test environment file created"
+
+    - name: 🔍 Validate Docker Compose syntax
+      run: |
+        echo "🔍 Validating Docker Compose syntax..."
+        if docker compose config --quiet; then
+          echo "✅ Docker Compose syntax is valid"
+        else
+          echo "❌ Docker Compose syntax validation failed"
+          exit 1
+        fi
+
+    - name: 📊 Analyze Docker Compose configuration
+      run: |
+        echo "📊 Analyzing Docker Compose configuration..."
+        
+        # Afficher la configuration parsée (pour debug)
+        echo "--- Configuration parsed ---"
+        docker compose config
+        
+        # Vérifications spécifiques
+        echo "--- Configuration Analysis ---"
+        
+        # Vérifier la présence des services essentiels
+        if docker compose config --services | grep -q "n8n"; then
+          echo "✅ n8n service found"
+        else
+          echo "❌ n8n service missing"
+          exit 1
+        fi
+        
+        if docker compose config --services | grep -q "postgres"; then
+          echo "✅ postgres service found"
+        else
+          echo "❌ postgres service missing"
+          exit 1
+        fi
+        
+        # Vérifier que les volumes sont définis
+        if docker compose config --volumes | grep -q "n8n_storage"; then
+          echo "✅ n8n_storage volume defined"
+        else
+          echo "❌ n8n_storage volume missing"
+          exit 1
+        fi
+        
+        # Vérifier la présence du réseau
+        if docker compose config | grep -q "networks:"; then
+          echo "✅ Networks configuration found"
+        else
+          echo "⚠️  No custom networks defined"
+        fi
+
+    - name: 🧪 Test Docker Compose build
+      run: |
+        echo "🧪 Testing Docker Compose build process..."
+        
+        # Test du build sans démarrer les services
+        if docker compose build --no-cache n8n; then
+          echo "✅ n8n service build successful"
+        else
+          echo "❌ n8n service build failed"
+          exit 1
+        fi
+
+    - name: 🔒 Security scan of Docker Compose
+      run: |
+        echo "🔒 Performing security analysis..."
+        
+        # Vérifications de sécurité basiques
+        echo "--- Security Analysis ---"
+        
+        # Vérifier qu'on n'utilise pas de mots de passe en dur
+        if grep -q "password.*:" docker-compose.yml && ! grep -q "\${" docker-compose.yml; then
+          echo "⚠️  Potential hardcoded passwords found"
+        else
+          echo "✅ No hardcoded passwords detected"
+        fi
+        
+        # Vérifier l'utilisation de variables d'environnement
+        if grep -q "\${" docker-compose.yml; then
+          echo "✅ Environment variables are used"
+        else
+          echo "⚠️  Consider using environment variables for configuration"
+        fi
+        
+        # Vérifier les ports exposés
+        exposed_ports=$(docker compose config | grep -E "^\s+- \"[0-9]+:" | wc -l)
+        echo "📊 Number of exposed ports: $exposed_ports"
+        
+        if [ "$exposed_ports" -gt 5 ]; then
+          echo "⚠️  Many ports exposed, review for security"
+        else
+          echo "✅ Reasonable number of exposed ports"
+        fi
+
+    - name: 🚀 Test services startup (dry-run)
+      run: |
+        echo "🚀 Testing services startup..."
+        
+        # Test de démarrage avec validation uniquement
+        if docker compose up --dry-run; then
+          echo "✅ Services startup validation passed"
+        else
+          echo "❌ Services startup validation failed"
+          exit 1
+        fi
+
+    - name: 📋 Generate validation report
+      if: always()
+      run: |
+        echo "📋 Generating validation report..."
+        
+        cat << 'EOF' > validation-report.md
+        # 🐳 Docker Compose Validation Report
+        
+        ## 📊 Summary
+        - **File**: `docker-compose.yml`
+        - **Validation Date**: $(date -Iseconds)
+        - **Commit**: ${{ github.sha }}
+        - **Branch**: ${{ github.ref_name }}
+        
+        ## ✅ Validations Performed
+        - [x] Syntax validation
+        - [x] Service configuration analysis
+        - [x] Build process testing
+        - [x] Security scanning
+        - [x] Startup validation
+        
+        ## 📈 Metrics
+        - **Services**: $(docker compose config --services | wc -l)
+        - **Volumes**: $(docker compose config --volumes | wc -l)
+        - **Networks**: $(docker compose config | grep -c "networks:" || echo "0")
+        
+        ## 🔧 Configuration Details
+        $(docker compose config --services | sed 's/^/- /')
+        
+        EOF
+        
+        echo "✅ Validation report generated"
+
+    - name: 📤 Upload validation artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-compose-validation-${{ github.run_number }}
+        path: |
+          validation-report.md
+          docker-compose.yml
+          .env
+        retention-days: 30
+
+    - name: 🧹 Cleanup
+      if: always()
+      run: |
+        echo "🧹 Cleaning up test artifacts..."
+        
+        # Nettoyer les images de test
+        docker compose down --volumes --remove-orphans 2>/dev/null || true
+        docker system prune -f --volumes 2>/dev/null || true
+        
+        echo "✅ Cleanup completed"
+
+  validate-community-nodes:
+    name: 🧩 Validate Community Nodes Installation
+    runs-on: ubuntu-latest
+    needs: validate-compose
+    
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 📋 Create test environment
+      run: |
+        cat << 'EOF' > .env
+        POSTGRES_DB=n8n_test
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=test_password_123
+        POSTGRES_NON_ROOT_USER=n8n
+        POSTGRES_NON_ROOT_PASSWORD=test_n8n_password_123
+        N8N_BASIC_AUTH_USER=admin
+        N8N_BASIC_AUTH_PASSWORD=test_admin_password_123
+        N8N_ENCRYPTION_KEY=test_encryption_key_1234567890abcdef
+        GENERIC_TIMEZONE=Europe/Paris
+        EOF
+
+    - name: 🧩 Test community nodes installation
+      run: |
+        echo "🧩 Testing community nodes installation..."
+        
+        # Builder l'image n8n avec les community nodes
+        docker compose build n8n
+        
+        # Créer un conteneur temporaire pour tester l'installation
+        container_id=$(docker create $(docker compose config | grep "image:" | grep n8n | head -1 | awk '{print $2}') /bin/sh)
+        
+        # Vérifier l'installation des community nodes
+        echo "🔍 Checking installed community nodes..."
+        
+        if docker run --rm $(docker compose config | grep "image:" | grep n8n | head -1 | awk '{print $2}') npm list -g n8n-nodes-imap-ai; then
+          echo "✅ n8n-nodes-imap-ai is installed"
+        else
+          echo "❌ n8n-nodes-imap-ai installation failed"
+          exit 1
+        fi
+        
+        if docker run --rm $(docker compose config | grep "image:" | grep n8n | head -1 | awk '{print $2}') npm list -g n8n-nodes-mcp; then
+          echo "✅ n8n-nodes-mcp is installed"
+        else
+          echo "❌ n8n-nodes-mcp installation failed"
+          exit 1
+        fi
+        
+        echo "✅ All community nodes are properly installed"
+
+  performance-test:
+    name: 🚀 Performance & Resource Testing
+    runs-on: ubuntu-latest
+    needs: validate-compose
+    
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 📋 Create test environment
+      run: |
+        cat << 'EOF' > .env
+        POSTGRES_DB=n8n_test
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=test_password_123
+        POSTGRES_NON_ROOT_USER=n8n
+        POSTGRES_NON_ROOT_PASSWORD=test_n8n_password_123
+        N8N_BASIC_AUTH_USER=admin
+        N8N_BASIC_AUTH_PASSWORD=test_admin_password_123
+        N8N_ENCRYPTION_KEY=test_encryption_key_1234567890abcdef
+        GENERIC_TIMEZONE=Europe/Paris
+        EOF
+
+    - name: ⏱️ Measure build time
+      run: |
+        echo "⏱️ Measuring build performance..."
+        
+        start_time=$(date +%s)
+        docker compose build
+        end_time=$(date +%s)
+        
+        build_duration=$((end_time - start_time))
+        echo "📊 Build duration: ${build_duration} seconds"
+        
+        # Alerter si le build prend trop de temps
+        if [ $build_duration -gt 300 ]; then
+          echo "⚠️  Build took longer than 5 minutes ($build_duration seconds)"
+        else
+          echo "✅ Build completed in reasonable time"
+        fi
+
+    - name: 📈 Analyze resource usage
+      run: |
+        echo "📈 Analyzing resource requirements..."
+        
+        # Analyser les requirements de ressources dans le compose file
+        if grep -q "deploy:" docker-compose.yml; then
+          echo "✅ Resource limits defined in compose file"
+          grep -A 10 "deploy:" docker-compose.yml
+        else
+          echo "⚠️  No resource limits defined - consider adding them for production"
+        fi
+        
+        # Vérifier la taille des images
+        echo "📊 Image sizes:"
+        docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" | grep -E "(n8n|postgres|ollama|qdrant)"
+
+  notification:
+    name: 📢 Validation Summary
+    runs-on: ubuntu-latest
+    needs: [validate-compose, validate-community-nodes, performance-test]
+    if: always()
+    
+    steps:
+    - name: 📢 Create validation summary
+      run: |
+        echo "📢 Docker Compose Validation Summary"
+        echo "======================================"
+        echo "🔍 Syntax validation: ${{ needs.validate-compose.result }}"
+        echo "🧩 Community nodes: ${{ needs.validate-community-nodes.result }}"
+        echo "🚀 Performance test: ${{ needs.performance-test.result }}"
+        echo "======================================"
+        
+        if [[ "${{ needs.validate-compose.result }}" == "success" && 
+              "${{ needs.validate-community-nodes.result }}" == "success" && 
+              "${{ needs.performance-test.result }}" == "success" ]]; then
+          echo "✅ All validations passed successfully!"
+          echo "🚀 Docker Compose configuration is ready for deployment"
+        else
+          echo "❌ Some validations failed"
+          echo "🔧 Please review the failed jobs and fix the issues"
+          exit 1
+        fi

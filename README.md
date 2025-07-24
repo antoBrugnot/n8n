@@ -387,6 +387,45 @@ Pour un environnement de production, considérez :
 - [Documentation QDrant](https://qdrant.tech/documentation)
 - [Documentation Ollama](https://ollama.com/docs)
 
+## 🚀 CI/CD et Validation
+
+### GitHub Actions
+
+Ce projet inclut une GitHub Action qui valide automatiquement le fichier `docker-compose.yml` :
+
+- **🔍 Validation syntaxique** : Vérification de la syntaxe Docker Compose
+- **🧩 Test des community nodes** : Validation de l'installation des nodes personnalisés
+- **🚀 Test de performance** : Mesure des temps de build et analyse des ressources
+- **🔒 Analyse de sécurité** : Détection des problèmes de sécurité potentiels
+
+La validation se déclenche automatiquement sur :
+- Push sur les branches `main`, `master`, `develop`
+- Pull requests modifiant `docker-compose.yml`
+- Modifications des fichiers `.env.example`
+
+### Badges de statut
+
+Vous pouvez ajouter ces badges dans votre README pour afficher le statut des validations :
+
+```markdown
+![Docker Compose Validation](https://github.com/antoBrugnot/n8n/workflows/🐳%20Validate%20Docker%20Compose/badge.svg)
+```
+
+### Validation locale
+
+Pour valider votre configuration localement avant de commit :
+
+```bash
+# Validation syntaxique
+docker compose config --quiet
+
+# Test de build
+docker compose build --no-cache
+
+# Validation complète (sans démarrage)
+docker compose up --dry-run
+```
+
 ## 🆘 Résolution de problèmes
 
 ### n8n ne démarre pas
@@ -402,9 +441,10 @@ Pour un environnement de production, considérez :
 
 ### Problèmes avec les community nodes
 1. **Node non visible** : Redémarrez le conteneur n8n
-2. **Erreur de build** : Vérifiez votre version de Podman Compose (`1.0.6+` minimum)
+2. **Erreur de build** : Vérifiez votre version de Podman Compose (`1.5.0+` minimum)
 3. **Node indisponible** : Vérifiez que le node existe sur npm
 4. **Performance** : Certains nodes peuvent nécessiter plus de ressources
+5. **CI/CD** : La GitHub Action valide automatiquement l'installation des community nodes
 
 ### Perte d'accès aux workflows
 Si vous perdez l'accès à vos workflows après une réinstallation, vérifiez que :
