@@ -289,7 +289,7 @@ jobs:
           
           while [ $attempt -le $max_attempts ]; do
             echo "Testing $node_name (attempt $attempt/$max_attempts)..."
-            if docker run --rm "${PROJECT_NAME}_n8n" npm list -g "$node_name" 2>/dev/null; then
+            if docker run --rm --user root --entrypoint /bin/sh "${PROJECT_NAME}_n8n" -c "npm list -g $node_name" 2>/dev/null; then
               echo "✅ $node_name is installed"
               return 0
             else
@@ -311,7 +311,7 @@ jobs:
         
         # **MEASUREMENT**: Générer un rapport des nodes installés
         echo "📊 Generating community nodes report..."
-        docker run --rm "${PROJECT_NAME}_n8n" npm list -g --depth=0 | grep n8n-nodes > community-nodes-report.txt || echo "No community nodes pattern found" > community-nodes-report.txt
+        docker run --rm --user root --entrypoint /bin/sh "${PROJECT_NAME}_n8n" -c "npm list -g --depth=0 | grep n8n-nodes" > community-nodes-report.txt || echo "No community nodes pattern found" > community-nodes-report.txt
         cat community-nodes-report.txt
 
   performance-test:
