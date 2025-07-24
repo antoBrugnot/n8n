@@ -391,7 +391,7 @@ jobs:
     - name: 📈 Analyze resource usage
       run: |
         echo "📈 Analyzing resource requirements..."
-        
+
         # **MEASUREMENT**: Analyser les requirements de ressources
         if grep -q "deploy:" docker-compose.yml; then
           echo "✅ Resource limits defined in compose file"
@@ -402,6 +402,7 @@ jobs:
         
         # **MEASUREMENT**: Vérifier la taille des images avec métriques détaillées
         echo "📊 Analyzing image sizes..."
+        docker compose pull
         docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.VirtualSize}}" | head -1
         docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.VirtualSize}}" | grep -E "(n8n|postgres|ollama|qdrant)" || echo "No matching images found yet"
         
