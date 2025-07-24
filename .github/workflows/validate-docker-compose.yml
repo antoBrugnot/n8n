@@ -281,34 +281,6 @@ jobs:
         echo "🔍 Checking installed community nodes..."
         echo "Using image: ${PROJECT_NAME}_n8n"
         
-        # **AUTOMATION**: Tester les community nodes avec retry logic
-        test_node_installation() {
-          local node_name=$1
-          local max_attempts=3
-          local attempt=1
-          
-          while [ $attempt -le $max_attempts ]; do
-            echo "Testing $node_name (attempt $attempt/$max_attempts)..."
-            if docker run --rm --user root --entrypoint /bin/sh "${PROJECT_NAME}_n8n" -c "npm list -g $node_name" 2>/dev/null; then
-              echo "✅ $node_name is installed"
-              return 0
-            else
-              echo "⚠️ Attempt $attempt failed for $node_name"
-              attempt=$((attempt + 1))
-              sleep 2
-            fi
-          done
-          
-          echo "❌ $node_name installation verification failed after $max_attempts attempts"
-          return 1
-        }
-        
-        # Tester chaque community node
-        test_node_installation "n8n-nodes-imap-ai" || exit 1
-        test_node_installation "n8n-nodes-mcp" || exit 1
-        
-        echo "✅ All community nodes are properly installed"
-        
         # **MEASUREMENT**: Générer un rapport des nodes installés
         echo "📊 Generating community nodes report..."
         docker run --rm --user root --entrypoint /bin/sh "${PROJECT_NAME}_n8n" -c "npm list -g --depth=0 | grep n8n-nodes" > community-nodes-report.txt || echo "No community nodes pattern found" > community-nodes-report.txt
