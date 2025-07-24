@@ -48,7 +48,10 @@ Tous ces services s'exécutent dans des conteneurs Podman et communiquent via un
 
 ## 📋 Prérequis
 
-- Podman ou Docker récents installés sur votre système
+- **Podman** ou **Docker** avec support des **Dockerfile inline** :
+  - Podman Compose : `1.5.0+`
+  - Docker Compose : `2.17.0+` (recommandé : `2.20.0+`)
+
 
 ## Talk (slides)
 
@@ -106,9 +109,22 @@ Utilisez les identifiants configurés dans `.env` :
 
 ## 🛠️ Services inclus
 
+### Services principaux
+- **n8n** : Plateforme d'automatisation avec community nodes pré-installés
+- **PostgreSQL** : Base de données relationnelle pour n8n
+- **Ollama** : Serveur de modèles de langage locaux (LLM)
+- **Qdrant** : Base de données vectorielle pour la recherche sémantique
+
 ![Credentials Ollama](./docs/img/credentials_ollama.png)
 
 ![Credentials QDrant](./docs/img/credentials_qdrant.png)
+
+### Community Nodes intégrés
+
+Ce projet inclut des **community nodes** pré-installés automatiquement lors du build du conteneur n8n :
+
+- **`n8n-nodes-imap-ai@2.3.9`** : Node IMAP avancé avec fonctionnalités IA
+- **`n8n-nodes-mcp@latest`** : Client MCP (Model Context Protocol)
 
 ## 🌐 Accès dashboard QDrant
 
@@ -126,6 +142,18 @@ L'instance utilise PostgreSQL avec les caractéristiques suivantes :
 - Port : `5432` (accessible uniquement depuis le conteneur n8n)
 - Utilisateur applicatif : `n8n`
 - Les données sont persistées dans un volume Docker
+
+## 🧩 Community Nodes disponibles
+
+### Nodes pré-installés
+- **IMAP AI** (`n8n-nodes-imap-ai@2.3.9`) : Gestion avancée des emails avec IA
+- **MCP Client** (`n8n-nodes-mcp@latest`) : Client pour Model Context Protocol
+
+### Fonctionnalités étendues
+Ces community nodes ajoutent des capacités avancées à votre instance n8n :
+- Traitement intelligent des emails
+- Intégration avec des modèles de contexte
+- Automatisation IA personnalisée
 
 ## 📁 Structure du projet
 
@@ -175,6 +203,10 @@ podman compose stop
 ### Redémarrer les services
 ```bash
 podman compose restart
+
+# Ou pour rebuilder et redémarrer après ajout de community nodes
+podman compose build --no-cache n8n
+podman compose up -d
 ```
 
 ### Voir les logs en temps réel
@@ -200,11 +232,80 @@ podman compose exec -T postgres psql -U n8n n8n < backup_n8n.sql
 
 ## 🔧 Configuration avancée
 
+### Community Nodes personnalisés
+
+#### 🔧 Ajout automatique via Dockerfile inline
+
+Le système utilise un **Dockerfile inline** dans le `docker-compose.yml` pour installer automatiquement les community nodes lors du build :
+
+```yaml
+n8n:
+  build:
+    dockerfile_inline: |
+      FROM docker.n8n.io/n8nio/n8n
+      USER root
+      RUN npm install -g n8n-nodes-imap-ai@2.3.9 n8n-nodes-mcp@latest
+      USER node
+```
+
+**Avantages** :
+- ✅ Installation automatique au démarrage
+- ✅ Pas de configuration manuelle
+- ✅ Reproductibilité garantie
+- ✅ Versionning des nodes
+
+#### 📦 Ajouter vos propres community nodes
+
+Pour ajouter d'autres community nodes, modifiez la ligne `RUN npm install` dans le `docker-compose.yml` :
+
+```yaml
+# Exemple avec des nodes supplémentaires
+RUN npm install -g \
+  n8n-nodes-imap-ai@2.3.9 \
+  n8n-nodes-mcp@latest \
+  n8n-nodes-your-custom-node@1.0.0 \
+  another-community-node@latest
+```
+
+**⚠️ Important** : Après modification, vous devez rebuilder le conteneur :
+```bash
+# Forcer le rebuild du conteneur n8n
+podman compose build --no-cache n8n
+podman compose up -d n8n
+```
+
+#### 🔍 Vérification des nodes installés
+
+Pour vérifier que vos community nodes sont bien installés :
+
+```bash
+# Se connecter au conteneur n8n
+podman compose exec n8n bash
+
+# Lister les packages npm installés globalement
+npm list -g --depth=0 | grep n8n-nodes
+
+# Ou vérifier un node spécifique
+npm list -g n8n-nodes-imap-ai
+```
+
+#### 🆘 Dépannage des community nodes
+
+**Problème** : Community node non visible dans n8n
+- Vérifiez que le node est installé : `npm list -g nom-du-node`
+- Redémarrez le conteneur : `podman compose restart n8n`
+- Vérifiez les logs : `podman compose logs n8n`
+
+**Problème** : Erreur d'installation
+- Vérifiez la version du node sur [npm](https://www.npmjs.com/)
+- Essayez sans spécifier de version : `@latest`
+- Consultez la documentation du community node
+
 ### Import automatique des workflows et credentials
 
 Ce projet inclut un système d'import automatique pour vos workflows et credentials :
 
-#### 📁 Structure des dossiers
+### 📁 Structure des dossiers
 ```
 workflows/          # Vos fichiers JSON de workflows
 ├── Indexation.json
@@ -215,6 +316,8 @@ credentials/        # Vos credentials pré-configurés
 ├── qdrant_credentials.json
 └── ollama_credentials.json
 ```
+
+**Note** : Les community nodes sont automatiquement installés via le système de build Docker inline, aucune configuration manuelle nécessaire.
 
 #### 🚀 Démarrage avec import automatique
 ```bash
@@ -288,13 +391,20 @@ Pour un environnement de production, considérez :
 
 ### n8n ne démarre pas
 1. Vérifiez que PostgreSQL est démarré et accessible
-2. Contrôlez les logs : `podman-compose logs n8n`
+2. Contrôlez les logs : `podman compose logs n8n`
 3. Vérifiez la configuration de la base de données dans `.env`
+4. **Community nodes** : Vérifiez que votre version de Podman/Docker supporte les Dockerfile inline
 
 ### Problèmes de connexion à la base
 1. Vérifiez que les credentials PostgreSQL sont corrects
 2. Attendez que PostgreSQL soit complètement initialisé
-3. Contrôlez les logs PostgreSQL : `podman-compose logs postgres`
+3. Contrôlez les logs PostgreSQL : `podman compose logs postgres`
+
+### Problèmes avec les community nodes
+1. **Node non visible** : Redémarrez le conteneur n8n
+2. **Erreur de build** : Vérifiez votre version de Podman Compose (`1.0.6+` minimum)
+3. **Node indisponible** : Vérifiez que le node existe sur npm
+4. **Performance** : Certains nodes peuvent nécessiter plus de ressources
 
 ### Perte d'accès aux workflows
 Si vous perdez l'accès à vos workflows après une réinstallation, vérifiez que :
