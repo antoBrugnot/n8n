@@ -401,7 +401,7 @@ Ce projet inclut une GitHub Action qui valide automatiquement le fichier `docker
 La validation se déclenche automatiquement sur :
 - Push sur les branches `main`, `master`, `develop`
 - Pull requests modifiant `docker-compose.yml`
-- Modifications des fichiers `.env.example`
+- Modifications des fichiers `.env`
 
 ### Badges de statut
 
