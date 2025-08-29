@@ -3,44 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "operation": "pdf",
-        "binaryPropertyName": "=File",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.extractFromFile",
-      "typeVersion": 1,
-      "position": [
-        -48,
-        0
-      ],
-      "id": "6970dc5f-f146-4450-b95f-57540ca451bc",
-      "name": "Extract from File"
-    },
-    {
-      "parameters": {
-        "formTitle": "Indexation",
-        "formFields": {
-          "values": [
-            {
-              "fieldLabel": "File",
-              "fieldType": "file"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.2,
-      "position": [
-        -384,
-        0
-      ],
-      "id": "6a5ab1c8-9e08-4b0a-b632-dd69eba17393",
-      "name": "On form submission",
-      "webhookId": "449ae336-526c-4507-8a43-98d55d48ed63"
-    },
-    {
-      "parameters": {
         "mode": "insert",
         "qdrantCollection": {
           "__rl": true,
@@ -53,8 +15,8 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
       "typeVersion": 1.3,
       "position": [
-        192,
-        0
+        144,
+        504
       ],
       "id": "ffea1905-bf6e-430b-bc96-5e46f53d622b",
       "name": "Qdrant Vector Store",
@@ -68,14 +30,31 @@
     {
       "parameters": {
         "jsonMode": "expressionData",
-        "jsonData": "={{ $json.info.Title }}\n{{ $json.info.Producer }}\n{{ $json.text }}",
-        "options": {}
+        "jsonData": "={{ $json.output }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "fileName",
+                "value": "={{ $input.item?.json?.File?.[0]?.filename ? $input.item.json.File[0].filename : \"\" }}"
+              },
+              {
+                "name": "submittedAt",
+                "value": "={{ $input.item?.json?.File?.[0]?.submittedAt ? $input.item.json.File[0].submittedAt : \"\" }}"
+              },
+              {
+                "name": "url",
+                "value": "={{ $input.item?.json?.Url ? $input.item.json.Url : \"\" }}"
+              }
+            ]
+          }
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
       "typeVersion": 1.1,
       "position": [
-        288,
-        272
+        304,
+        728
       ],
       "id": "bcf58828-94a0-42a6-8df8-c653ac241820",
       "name": "Documents Data Loader"
@@ -87,43 +66,309 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
       "typeVersion": 1,
       "position": [
-        144,
-        272
+        176,
+        728
       ],
       "id": "63cb4e3a-c22e-43aa-88e7-7bb3f8fbdeb8",
-      "name": "Embeddings Ollama",
+      "name": "Embeddings nomic-embed-text",
       "credentials": {
         "ollamaApi": {
           "id": "f6lTqp9Q4EjXbmj7",
           "name": "Ollama account"
         }
       }
+    },
+    {
+      "parameters": {
+        "model": "qwen2.5:3b",
+        "options": {
+          "temperature": 0.1,
+          "topP": 0.9,
+          "numCtx": 4096,
+          "repeatPenalty": 1.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        224
+      ],
+      "id": "c6d292b6-98bc-4506-8f39-33839ad5f971",
+      "name": "qwen2.5:3b optimized",
+      "credentials": {
+        "ollamaApi": {
+          "id": "m0Q1biSbFLejwvqp",
+          "name": "Ollama remote"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.File[0].mimetype }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f48094fa-51ec-4d82-b98a-53eb2b64e763"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "234e19c8-d85a-45ce-aaba-eb5545db17a3",
+                    "leftValue": "={{ $json.File[0].mimetype }}",
+                    "rightValue": "application/vnd.ms-excel",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "72ae3763-d656-4c89-9387-c1a9f5116f57",
+                    "leftValue": "={{ $json.File[0].mimetype }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -928,
+        216
+      ],
+      "id": "c08362d0-1215-430a-8805-d8f09c8d9643",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "=File",
+        "options": {
+          "joinPages": false
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        8
+      ],
+      "id": "6970dc5f-f146-4450-b95f-57540ca451bc",
+      "name": "Extract from PDF"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "http://playwright-mcp:3000/sse"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        1128
+      ],
+      "id": "e1226106-0e13-45be-a583-875714175864",
+      "name": "playwright-mcp"
+    },
+    {
+      "parameters": {
+        "model": "granite3.2-vision:2b",
+        "options": {
+          "temperature": 0.1,
+          "topP": 0.9,
+          "repeatPenalty": 1.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        624
+      ],
+      "id": "4e4b5ca6-fd6a-48f4-81fd-cc613e5fdcaf",
+      "name": "granite3.2-vision:2b",
+      "credentials": {
+        "ollamaApi": {
+          "id": "m0Q1biSbFLejwvqp",
+          "name": "Ollama remote"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze this image in detail. Describe everything you can see, including:\n- Visual elements and objects\n- Text content (if any)\n- Layout and structure\n- Colors and style\n- Any relevant information for document understanding",
+        "options": {
+          "passthroughBinaryImages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        -256,
+        400
+      ],
+      "id": "c04f4c4b-24d3-4f2b-868e-3ce35742b054",
+      "name": "AI Agent - Analyze Image"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Tu es un assistant scrappeur de site web.\nEn utilisant les outils du Tool \"playwright-mcp\" à disposition, extrait toutes les informations de la page en regroupant par topics avec l'url suivante : \n{{ $json.Url }}\n**Préserve l'intégralité du contenu texte, ne fait pas de résumé**\n**Extrait également les informations des entêtes html head et footer**\n**Fait tout pour ne pas te faire détecter comme un Bot :**\n* utilise un useragent chrome\n* stealthmode\n* résoud les catcha",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        -256,
+        904
+      ],
+      "id": "184c72f3-f2cf-444c-a23f-89da14a2f4c4",
+      "name": "AI Agent - Scrap the web"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "==Tu es un expert en nettoyage de texte JSON.\nMission: nettoyer et structurer le texte fourni.\n\n**RÈGLES STRICTES:**\n1. Supprime TOUS les caractères de bruit: ---, ===, ***, +++, etc ou de Copyright.\n2. Regroupe les mots fragmentés en phrases cohérentes\n3. Corrige les sauts de ligne inappropriés\n4. Préserve la structure logique (paragraphes, listes)\n5. Normalise les espaces multiples\n6. Conserve le sens original\n7. En sortie je veux le texte nettoyer et rien d'autre\n\n**TEXTE À NETTOYER:**\n{{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        -256,
+        0
+      ],
+      "id": "88d275a2-d367-4d35-9de8-b57a7bf9cc67",
+      "name": "AI Agent - Sanitize extracted text"
+    },
+    {
+      "parameters": {
+        "operation": "xls",
+        "binaryPropertyName": "File",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        232
+      ],
+      "id": "538e501b-d2b8-4b6b-8b9c-cf782ac02074",
+      "name": "Extract from Excel"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "text",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        8
+      ],
+      "id": "870cba50-77ce-4098-97c4-a1bdb91182dd",
+      "name": "Split Out Pages"
+    },
+    {
+      "parameters": {
+        "formTitle": "Indexation of File",
+        "formDescription": "Add the file to Index in RAG (image, pdf, excel)",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "File",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -1152,
+        232
+      ],
+      "id": "6a5ab1c8-9e08-4b0a-b632-dd69eba17393",
+      "name": "File upload",
+      "webhookId": "449ae336-526c-4507-8a43-98d55d48ed63"
+    },
+    {
+      "parameters": {
+        "formTitle": "Url to scrap",
+        "formDescription": "Url to scrap for RAG",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Url"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -480,
+        904
+      ],
+      "id": "41608ae1-c961-4979-be04-f321e4871fad",
+      "name": "Url",
+      "webhookId": "114d6625-8ec8-4440-a866-7e4a44edb880"
     }
   ],
   "pinData": {},
   "connections": {
-    "Extract from File": {
-      "main": [
-        [
-          {
-            "node": "Qdrant Vector Store",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "On form submission": {
-      "main": [
-        [
-          {
-            "node": "Extract from File",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Documents Data Loader": {
       "ai_document": [
         [
@@ -135,12 +380,163 @@
         ]
       ]
     },
-    "Embeddings Ollama": {
+    "Embeddings nomic-embed-text": {
       "ai_embedding": [
         [
           {
             "node": "Qdrant Vector Store",
             "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "qwen2.5:3b optimized": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Sanitize extracted text",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Scrap the web",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from PDF": {
+      "main": [
+        [
+          {
+            "node": "Split Out Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Extract from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from Excel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent - Analyze Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "playwright-mcp": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent - Scrap the web",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "granite3.2-vision:2b": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Analyze Image",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Analyze Image": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Sanitize extracted text": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from Excel": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Sanitize extracted text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Pages": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Sanitize extracted text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File upload": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Url": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Scrap the web",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Scrap the web": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "main",
             "index": 0
           }
         ]
@@ -151,7 +547,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "69449e18-fa45-429a-ad61-473802064b8a",
+  "versionId": "252ad04d-dd51-424e-aa7d-e6dba87d977a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "35e53b4e1c0deaab7d871949fef5124ac4432fe9906011927482989de82c5430"
