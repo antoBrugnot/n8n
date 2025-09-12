@@ -3,32 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "mode": "insert",
-        "qdrantCollection": {
-          "__rl": true,
-          "value": "documents",
-          "mode": "list",
-          "cachedResultName": "documents"
-        },
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
-      "typeVersion": 1.3,
-      "position": [
-        144,
-        504
-      ],
-      "id": "ffea1905-bf6e-430b-bc96-5e46f53d622b",
-      "name": "Qdrant Vector Store",
-      "credentials": {
-        "qdrantApi": {
-          "id": "lkhTP0ymQPZKkBSE",
-          "name": "QdrantApi account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "jsonMode": "expressionData",
         "jsonData": "={{ $json.output }}",
         "options": {
@@ -36,15 +10,7 @@
             "metadataValues": [
               {
                 "name": "fileName",
-                "value": "={{ $input.item?.json?.File?.[0]?.filename ? $input.item.json.File[0].filename : \"\" }}"
-              },
-              {
-                "name": "submittedAt",
-                "value": "={{ $input.item?.json?.File?.[0]?.submittedAt ? $input.item.json.File[0].submittedAt : \"\" }}"
-              },
-              {
-                "name": "url",
-                "value": "={{ $input.item?.json?.Url ? $input.item.json.Url : \"\" }}"
+                "value": "={{ $json.dataFileName }}"
               }
             ]
           }
@@ -53,55 +19,11 @@
       "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
       "typeVersion": 1.1,
       "position": [
-        304,
-        728
+        80,
+        2208
       ],
       "id": "bcf58828-94a0-42a6-8df8-c653ac241820",
       "name": "Documents Data Loader"
-    },
-    {
-      "parameters": {
-        "model": "nomic-embed-text:latest"
-      },
-      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
-      "typeVersion": 1,
-      "position": [
-        176,
-        728
-      ],
-      "id": "63cb4e3a-c22e-43aa-88e7-7bb3f8fbdeb8",
-      "name": "Embeddings nomic-embed-text",
-      "credentials": {
-        "ollamaApi": {
-          "id": "f6lTqp9Q4EjXbmj7",
-          "name": "Ollama account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": "qwen2.5:3b",
-        "options": {
-          "temperature": 0.1,
-          "topP": 0.9,
-          "numCtx": 4096,
-          "repeatPenalty": 1.1
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
-      "typeVersion": 1,
-      "position": [
-        -160,
-        224
-      ],
-      "id": "c6d292b6-98bc-4506-8f39-33839ad5f971",
-      "name": "qwen2.5:3b optimized",
-      "credentials": {
-        "ollamaApi": {
-          "id": "m0Q1biSbFLejwvqp",
-          "name": "Ollama remote"
-        }
-      }
     },
     {
       "parameters": {
@@ -117,7 +39,7 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.File[0].mimetype }}",
+                    "leftValue": "={{ $json.File.mimetype }}",
                     "rightValue": "application/pdf",
                     "operator": {
                       "type": "string",
@@ -140,7 +62,7 @@
                 "conditions": [
                   {
                     "id": "234e19c8-d85a-45ce-aaba-eb5545db17a3",
-                    "leftValue": "={{ $json.File[0].mimetype }}",
+                    "leftValue": "={{ $json.File.mimetype }}",
                     "rightValue": "application/vnd.ms-excel",
                     "operator": {
                       "type": "string",
@@ -162,8 +84,52 @@
                 },
                 "conditions": [
                   {
+                    "id": "f99555f1-c5ff-4e40-8b17-8443a21168b1",
+                    "leftValue": "={{ $json.File.mimetype }}",
+                    "rightValue": "text/plain",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
                     "id": "72ae3763-d656-4c89-9387-c1a9f5116f57",
-                    "leftValue": "={{ $json.File[0].mimetype }}",
+                    "leftValue": "={{ $json.File.mimetype }}",
+                    "rightValue": "html",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b2f939a8-db40-4efa-b65e-3ec349a1cd59",
+                    "leftValue": "={{ $json.File.mimetype }}",
                     "rightValue": "image",
                     "operator": {
                       "type": "string",
@@ -181,8 +147,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -928,
-        216
+        -1520,
+        1072
       ],
       "id": "c08362d0-1215-430a-8805-d8f09c8d9643",
       "name": "Switch"
@@ -198,53 +164,31 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        -704,
-        8
+        -1296,
+        784
       ],
       "id": "6970dc5f-f146-4450-b95f-57540ca451bc",
       "name": "Extract from PDF"
     },
     {
       "parameters": {
-        "sseEndpoint": "http://playwright-mcp:3000/sse"
+        "sseEndpoint": "http://playwright-mcp:3000/sse",
+        "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
       "typeVersion": 1,
       "position": [
-        -160,
-        1128
+        -784,
+        3120
       ],
       "id": "e1226106-0e13-45be-a583-875714175864",
       "name": "playwright-mcp"
     },
     {
       "parameters": {
-        "model": "granite3.2-vision:2b",
-        "options": {
-          "temperature": 0.1,
-          "topP": 0.9,
-          "repeatPenalty": 1.1
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
-      "typeVersion": 1,
-      "position": [
-        -160,
-        624
-      ],
-      "id": "4e4b5ca6-fd6a-48f4-81fd-cc613e5fdcaf",
-      "name": "granite3.2-vision:2b",
-      "credentials": {
-        "ollamaApi": {
-          "id": "m0Q1biSbFLejwvqp",
-          "name": "Ollama remote"
-        }
-      }
-    },
-    {
-      "parameters": {
         "promptType": "define",
-        "text": "=Analyze this image in detail. Describe everything you can see, including:\n- Visual elements and objects\n- Text content (if any)\n- Layout and structure\n- Colors and style\n- Any relevant information for document understanding",
+        "text": "=Tu es un assistant spécialisé dans l'analyse documentaire. Effectue une analyse complète de cette image à des fins d'intelligence métier.\n\n**IMPORTANT : Réponds EXCLUSIVEMENT en FRANÇAIS, quelle que soit la langue du document analysé.**\n\n**PRIORITÉS D'EXTRACTION :**\n\n1. **EXTRACTION TEXTUELLE**\n   - Extrais TOUT le texte visible mot pour mot\n   - Si le texte est dans une autre langue, fournis la transcription originale ET la traduction française\n   - Identifie la hiérarchie : titres, sous-titres, en-têtes\n   - Capture les légendes, étiquettes, annotations\n   - Signale tout élément manuscrit\n\n2. **STRUCTURE DOCUMENTAIRE**\n   - Type de document (facture, rapport, diagramme, email, slide, etc.)\n   - Organisation spatiale (colonnes, sections, zones)\n   - Flux de lecture et hiérarchie informationnelle\n   - Indicateurs de pagination si visibles\n\n3. **ÉLÉMENTS DE DONNÉES**\n   - Tableaux : extrais structure et contenu complet\n   - Nombres, montants, pourcentages\n   - Dates et références temporelles\n   - Identifiants, numéros de référence, codes\n   - Coordonnées (emails, téléphones, adresses)\n\n4. **INFORMATIONS VISUELLES**\n   - Graphiques : type, axes, tendances, valeurs clés\n   - Schémas : composants et relations\n   - Icônes et symboles avec leur signification\n   - Logos et éléments de marque\n\n5. **MÉTADONNÉES ET CONTEXTE**\n   - Langue(s) détectée(s) dans le document\n   - Source/origine probable\n   - Statut du document (brouillon, final, mentions confidentielles)\n   - Problèmes de qualité affectant la lisibilité\n   - Nom du fichier en entrée : {{ $json.File.filename }}\n\n**FORMAT DE SORTIE :**\nStructure les informations en sections claires en FRANÇAIS. Pour tout contenu ambigu, indique le niveau d'incertitude (faible, moyenne ou haute).\n\nConcentre-toi sur l'extraction factuelle. N'interprète pas au-delà du visible.",
+        "hasOutputParser": true,
         "options": {
           "passthroughBinaryImages": true
         }
@@ -252,8 +196,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.1,
       "position": [
-        -256,
-        400
+        -784,
+        1760
       ],
       "id": "c04f4c4b-24d3-4f2b-868e-3ce35742b054",
       "name": "AI Agent - Analyze Image"
@@ -261,14 +205,15 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Tu es un assistant scrappeur de site web.\nEn utilisant les outils du Tool \"playwright-mcp\" à disposition, extrait toutes les informations de la page en regroupant par topics avec l'url suivante : \n{{ $json.Url }}\n**Préserve l'intégralité du contenu texte, ne fait pas de résumé**\n**Extrait également les informations des entêtes html head et footer**\n**Fait tout pour ne pas te faire détecter comme un Bot :**\n* utilise un useragent chrome\n* stealthmode\n* résoud les catcha",
+        "text": "=Tu es un agent spécialisé dans l'extraction structurée de données web publiques.\nUtilise les outils MCP Playwright pour extraire le contenu de manière respectueuse et conforme.\n\n**URL CIBLE :** {{ $json.Url }}\n\n**CONFIGURATION INITIALE - STEALTH MODE**\n\n1. **Configuration du navigateur :**\n   - User-Agents possibles: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36\n   - Locale : fr-FR\n   - Timezone : Europe/Paris\n\n2. **Comportement humain simulé :**\n   - Délai aléatoire initial : 2-5 secondes avant première action\n   - Mouvements de souris non-linéaires\n   - Scroll progressif (pas instantané)\n   - Temps de lecture simulé entre sections (1-3 sec)\n   - Variations dans la vitesse de frappe si input nécessaire\n\n3. **Anti-détection avancée :**\n   - Désactive navigator.webdriver\n   - Masque les propriétés automation\n   - Active les permissions standard (notifications, géoloc en mode \"prompt\")\n   - Headers HTTP réalistes (Accept-Language, Accept-Encoding)\n   - Gère les cookies de manière cohérente\n\n**PROTOCOLE D'EXTRACTION**\n\nPhase 1 - VÉRIFICATION PRÉLIMINAIRE\n□ Identifie le type de site (SPA, SSR, statique)\n□ Détecte les protections actives (Cloudflare, DataDome, etc.)\n□ Attend le chargement complet (networkidle + DOM stable)\n\nPhase 2 - GESTION DES OBSTACLES\nSi CAPTCHA détecté :\n- Type reCAPTCHA : attendre interaction manuelle ou skip\n- Type Cloudflare : attendre résolution automatique (max 30s)\n- Autre : documenter et reporter l'obstacle\nNote : Ne tente PAS de résoudre automatiquement les CAPTCHAs complexes\n\nSi popup/bannière cookies :\n- Accepter les cookies essentiels uniquement\n- Fermer les overlays marketing",
+        "hasOutputParser": true,
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.1,
       "position": [
-        -256,
-        904
+        -848,
+        2896
       ],
       "id": "184c72f3-f2cf-444c-a23f-89da14a2f4c4",
       "name": "AI Agent - Scrap the web"
@@ -276,15 +221,15 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "==Tu es un expert en nettoyage de texte JSON.\nMission: nettoyer et structurer le texte fourni.\n\n**RÈGLES STRICTES:**\n1. Supprime TOUS les caractères de bruit: ---, ===, ***, +++, etc ou de Copyright.\n2. Regroupe les mots fragmentés en phrases cohérentes\n3. Corrige les sauts de ligne inappropriés\n4. Préserve la structure logique (paragraphes, listes)\n5. Normalise les espaces multiples\n6. Conserve le sens original\n7. En sortie je veux le texte nettoyer et rien d'autre\n\n**TEXTE À NETTOYER:**\n{{ $json.text }}",
+        "text": "==\n**Persona**\nTu es un expert en nettoyage de texte JSON issu d'extraction de documents pdf, excel et html.\n\n**Instruction:**\nNettoyer et structurer le texte fourni.\n\n**RÈGLES STRICTES:**\n1. Supprime TOUS les caractères de bruit: ---, ===, ***, +++, etc ou de Copyright.\n2. Regroupe les mots fragmentés en phrases cohérentes\n3. Corrige les sauts de ligne inappropriés\n4. Préserve la structure logique (paragraphes, listes)\n5. Normalise les espaces multiples\n6. Conserve le sens original\n7. En sortie je veux le texte nettoyer et rien d'autre\n8. Output uniquement en Français\n9. Pas d'hallucination\n\n**TEXTE À NETTOYER:**\n{{ $json.text }}",
         "hasOutputParser": true,
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.1,
       "position": [
-        -256,
-        0
+        -784,
+        752
       ],
       "id": "88d275a2-d367-4d35-9de8-b57a7bf9cc67",
       "name": "AI Agent - Sanitize extracted text"
@@ -298,8 +243,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        -480,
-        232
+        -1072,
+        976
       ],
       "id": "538e501b-d2b8-4b6b-8b9c-cf782ac02074",
       "name": "Extract from Excel"
@@ -313,11 +258,418 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -480,
-        8
+        -1072,
+        784
       ],
       "id": "870cba50-77ce-4098-97c4-a1bdb91182dd",
       "name": "Split Out Pages"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "sourceData": "binary",
+        "dataPropertyName": "=File",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "text",
+              "cssSelector": "body",
+              "skipSelectors": "img,nav"
+            },
+            {
+              "key": "title",
+              "cssSelector": "title"
+            },
+            {
+              "key": "images",
+              "cssSelector": "img",
+              "returnValue": "attribute",
+              "attribute": "src",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {
+          "trimValues": true,
+          "cleanUpText": true
+        }
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -1296,
+        1520
+      ],
+      "id": "6fe0dd52-0550-4282-94e4-6f1308d9753f",
+      "name": "extract from HTML"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "24488853-646a-4808-be3a-243d120bbfbb",
+              "leftValue": "={{ $json.images }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1072,
+        1520
+      ],
+      "id": "29bba651-3c6a-44df-96d5-afcd5cf7357b",
+      "name": "Ne contient pas d'image"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "images",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        1568
+      ],
+      "id": "ee446a38-7de9-4a03-825a-134bec2ae5d8",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "images",
+        "binaryPropertyName": "imageFIle",
+        "options": {
+          "mimeType": ""
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -288,
+        1568
+      ],
+      "id": "5518d4f7-a71a-4554-9b94-b102498d9031",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "binaryPropertyName": "=File",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1072,
+        1168
+      ],
+      "id": "18a10949-b7e7-4c2d-91f3-c15b6b61a508",
+      "name": "Extract from Text File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9227baf7-69ad-40fd-bd2f-1c2817f431f3",
+              "name": "dataFileName",
+              "value": "={{ $('om File upload').item.json.File.filename }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -288,
+        1072
+      ],
+      "id": "e5898d9f-496a-4623-8f88-67b28986e7a9",
+      "name": "Set filename"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "06f49cfc-8442-4d49-a354-28b1b2e0f01d",
+              "name": "dataFileName",
+              "value": "={{ $('on Url Submission').item.json.Url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -288,
+        2896
+      ],
+      "id": "675fe43b-d52b-4d7e-a479-69f3fce99ecf",
+      "name": "Set fileName for url"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"type_site\": \"Statique (SSR)\",\n\"protections_detectees\": [\"Aucune\"],\n\"texte_extrait\": \"Le texte clair et concis\",\n\"titre\": \"Aquarelle parfois je fais des trucs bien\",\n\"description\": \"Un article détaillant les techniques d'aquarelle et les moments créatifs où l'on s'exprime librement.\"\n}\n",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -656,
+        3120
+      ],
+      "id": "0a849a29-401c-4903-8a81-11b14137f692",
+      "name": "Scraper Structured Output"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"texte_extrait\": \"Le texte clair et concis\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -704,
+        976
+      ],
+      "id": "5729d064-08d6-4e48-ba6a-52a4e18a33cb",
+      "name": "Sanitizer Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"analyse\": \"L'anaylyse detaillee de l'image\",\n\t\"incertitude\": \"faible\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -704,
+        1984
+      ],
+      "id": "e602b2de-eed3-4502-b077-9283812f4de1",
+      "name": "Analyser Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": "qwen3:4b",
+        "options": {
+          "temperature": 0.1,
+          "topP": 0.9,
+          "numCtx": 4096,
+          "repeatPenalty": 1.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        1392
+      ],
+      "id": "4d64d5a6-6dfa-41eb-b9a7-088134ee41f7",
+      "name": "Remote Ollama Sanitizer Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "m0Q1biSbFLejwvqp",
+          "name": "Ollama remote"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "qwen3:4b",
+        "options": {
+          "temperature": 0.1,
+          "topP": 0.9,
+          "numCtx": 4096,
+          "repeatPenalty": 1.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        3536
+      ],
+      "id": "c6d292b6-98bc-4506-8f39-33839ad5f971",
+      "name": "Remote Ollama Scrapper Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "m0Q1biSbFLejwvqp",
+          "name": "Ollama remote"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rule": [
+            {
+              "modelIndex": 2,
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a9a1a068-941c-4ed4-b432-5e5002db20a8",
+                    "leftValue": "1",
+                    "rightValue": "1",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.modelSelector",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        1184
+      ],
+      "id": "9c975faa-e955-4e4c-8157-85231156c8e4",
+      "name": "Sanitizer Model Selector"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rule": [
+            {
+              "modelIndex": 2,
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a9a1a068-941c-4ed4-b432-5e5002db20a8",
+                    "leftValue": "1",
+                    "rightValue": "1",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.modelSelector",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        3328
+      ],
+      "id": "a674e088-c007-4de4-8301-c03cfeb17606",
+      "name": "Scrapper Model Selector"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        -64,
+        1984
+      ],
+      "id": "ffea1905-bf6e-430b-bc96-5e46f53d622b",
+      "name": "RAG Local Documents Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "lkhTP0ymQPZKkBSE",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Ticket Support",
+        "formDescription": "Ajout d'un ticket de support a la main dans le RAG",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "ticket_id",
+              "placeholder": "L'id du ticket de support",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "ticket_title",
+              "placeholder": "Le titre du ticket de support",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "ticket_description",
+              "placeholder": "La description du ticket de support",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "ticket_history",
+              "placeholder": "Historique des conversations du ticket",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -1744,
+        224
+      ],
+      "id": "392d6b9e-6b8b-4c95-8acc-6bdb838b301b",
+      "name": "On ticket submission",
+      "webhookId": "344ea36b-fbdf-40fa-9de7-990d4f4c5fca"
     },
     {
       "parameters": {
@@ -327,7 +679,20 @@
           "values": [
             {
               "fieldLabel": "File",
-              "fieldType": "file"
+              "fieldType": "file",
+              "multipleFiles": false,
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "private",
+              "fieldType": "checkbox",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Privé"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -336,11 +701,11 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        -1152,
-        232
+        -1744,
+        1120
       ],
       "id": "6a5ab1c8-9e08-4b0a-b632-dd69eba17393",
-      "name": "File upload",
+      "name": "om File upload",
       "webhookId": "449ae336-526c-4507-8a43-98d55d48ed63"
     },
     {
@@ -350,7 +715,8 @@
         "formFields": {
           "values": [
             {
-              "fieldLabel": "Url"
+              "fieldLabel": "Url",
+              "placeholder": "Url of the website page to scrap"
             }
           ]
         },
@@ -359,12 +725,378 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        -480,
-        904
+        -1072,
+        2896
       ],
       "id": "41608ae1-c961-4979-be04-f321e4871fad",
-      "name": "Url",
+      "name": "on Url Submission",
       "webhookId": "114d6625-8ec8-4440-a866-7e4a44edb880"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rule": [
+            {
+              "modelIndex": 2,
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7ad13cac-2342-43c9-826e-6466ffc684b6",
+                    "leftValue": "1",
+                    "rightValue": "1",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.modelSelector",
+      "typeVersion": 1,
+      "position": [
+        -1472,
+        336
+      ],
+      "id": "1fd72a4f-7fb2-4396-894a-41f5f527bd9a",
+      "name": "Ticket Indexation Model Selector"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"id\": \"012345\",\n\t\"title\": \"Il y a un probleme sur l'application\",\n    \"description\" : \"J'ai vu un bug\",\n    \"history\" : {\n      \"exchange_1\" : \"Le support demande plus d'information\",\n      \"exchange_2\" : \"Le client explique mieux le bug, c'est une erreur 500\",\n      \"exchange_3\" : \"Le support comprend mieux et indique la resolution du bug\"\n    },\n    \"analysis\": \"Analyse claire et concise de ce qui s'est passe\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1328,
+        128
+      ],
+      "id": "d1b24e5a-238e-4452-b30a-cf58fed7bb9b",
+      "name": "Ticket Indexation Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=**Persona**\nTu es un expert de l'indexation de ticket de support.\n\n**Instruction:**\nDonne une analyse claire et concise de ce qui s'est passe en fonction des informations fournies.\n\n**RÈGLES STRICTES:**\n1. Supprime TOUS les caractères de bruit: ---, ===, ***, +++, etc ou de Copyright.\n2. Regroupe les mots fragmentés en phrases cohérentes\n3. Corrige les sauts de ligne inappropriés\n4. Préserve la structure logique (paragraphes, listes)\n5. Normalise les espaces multiples\n6. Conserve le sens original\n7. Output uniquement en Français\n8. Pas d'hallucination\n\n**Informations sur le ticket:**\n* id : {{ $json.ticket_id }}\n\n* titre : {{ $json.ticket_title }}\n\n* description (pas de modification) :{{ $json.ticket_description }}\n\n* historique (pas de modification) : {{ $json.ticket_history }}\n\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -1520,
+        -96
+      ],
+      "id": "cc0744c2-4114-4bb0-bd1f-511669389c6a",
+      "name": "AI Agent - Ticket Indexer"
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        2208
+      ],
+      "id": "63cb4e3a-c22e-43aa-88e7-7bb3f8fbdeb8",
+      "name": "Documents Embeddings Local Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "f6lTqp9Q4EjXbmj7",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "tickets",
+          "mode": "list",
+          "cachedResultName": "tickets"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        -960,
+        224
+      ],
+      "id": "182e0944-736c-41a1-961e-81f34feeb46a",
+      "name": "RAG Local Tickets Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "lkhTP0ymQPZKkBSE",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.output }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "ticket_id",
+                "value": "={{ $json.output.id }}"
+              },
+              {
+                "name": "submission_date",
+                "value": "={{ $('On ticket submission').item.json.submittedAt }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -816,
+        448
+      ],
+      "id": "db5ccd13-f827-4272-ae94-4a9422a9496a",
+      "name": "Tickets Data Loader"
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        -944,
+        448
+      ],
+      "id": "627cd36f-adc9-4e9b-a401-eece6d527fb5",
+      "name": "Tickets Embeddings Local Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "f6lTqp9Q4EjXbmj7",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "qwen3:4b",
+        "options": {
+          "temperature": 0.1,
+          "topP": 0.9,
+          "numCtx": 4096,
+          "repeatPenalty": 1.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -1456,
+        544
+      ],
+      "id": "b5d871b6-f315-4032-a5dd-3c79e7b80a58",
+      "name": "Remote Ollama Ticket Indexer Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "m0Q1biSbFLejwvqp",
+          "name": "Ollama remote"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1328,
+        544
+      ],
+      "id": "049fe994-4a0d-48d4-9bce-2cf8a1389245",
+      "name": "OpenAI Ticket Indexer Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5vBijCclluIlljh2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -640,
+        2400
+      ],
+      "id": "4180a62e-dec5-4840-b06b-caaaf921af45",
+      "name": "OpenAI Image Analyser Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5vBijCclluIlljh2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -640,
+        1392
+      ],
+      "id": "79921c5e-3f6e-42bd-9158-2b046dfacbe6",
+      "name": "OpenAI Sanitizer Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5vBijCclluIlljh2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        3536
+      ],
+      "id": "8468c934-3412-4eb1-bdbe-29c73ef31d2b",
+      "name": "OpenAI Scrapper Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5vBijCclluIlljh2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "qwen3:4b",
+        "options": {
+          "temperature": 0.1,
+          "topP": 0.9,
+          "numCtx": 4096,
+          "repeatPenalty": 1.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        2400
+      ],
+      "id": "032af591-9957-4316-bf30-e777e8ad3c0c",
+      "name": "Remote Ollama Image Analyser Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "m0Q1biSbFLejwvqp",
+          "name": "Ollama remote"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rule": [
+            {
+              "modelIndex": 2,
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a9a1a068-941c-4ed4-b432-5e5002db20a8",
+                    "leftValue": "1",
+                    "rightValue": "1",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.modelSelector",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        2192
+      ],
+      "id": "afa3c93b-faba-4015-a570-929d833e1df2",
+      "name": "Image Analyser Model Selector"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.ticket_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1456,
+        128
+      ],
+      "id": "419015d8-f0dd-4520-ac6f-28f24c330015",
+      "name": "Simple Ticket Memory"
     }
   ],
   "pinData": {},
@@ -373,35 +1105,8 @@
       "ai_document": [
         [
           {
-            "node": "Qdrant Vector Store",
+            "node": "RAG Local Documents Vector Store",
             "type": "ai_document",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Embeddings nomic-embed-text": {
-      "ai_embedding": [
-        [
-          {
-            "node": "Qdrant Vector Store",
-            "type": "ai_embedding",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "qwen2.5:3b optimized": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent - Sanitize extracted text",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "AI Agent - Scrap the web",
-            "type": "ai_languageModel",
             "index": 0
           }
         ]
@@ -436,6 +1141,20 @@
         ],
         [
           {
+            "node": "Extract from Text File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "extract from HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "AI Agent - Analyze Image",
             "type": "main",
             "index": 0
@@ -454,22 +1173,11 @@
         ]
       ]
     },
-    "granite3.2-vision:2b": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent - Analyze Image",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "AI Agent - Analyze Image": {
       "main": [
         [
           {
-            "node": "Qdrant Vector Store",
+            "node": "Set filename",
             "type": "main",
             "index": 0
           }
@@ -480,7 +1188,7 @@
       "main": [
         [
           {
-            "node": "Qdrant Vector Store",
+            "node": "Set filename",
             "type": "main",
             "index": 0
           }
@@ -509,7 +1217,188 @@
         ]
       ]
     },
-    "File upload": {
+    "AI Agent - Scrap the web": {
+      "main": [
+        [
+          {
+            "node": "Set fileName for url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract from HTML": {
+      "main": [
+        [
+          {
+            "node": "Ne contient pas d'image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ne contient pas d'image": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Sanitize extracted text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Sanitize extracted text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from Text File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Sanitize extracted text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set filename": {
+      "main": [
+        [
+          {
+            "node": "RAG Local Documents Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set fileName for url": {
+      "main": [
+        [
+          {
+            "node": "RAG Local Documents Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scraper Structured Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Scrap the web",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanitizer Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Sanitize extracted text",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyser Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Analyze Image",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remote Ollama Sanitizer Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sanitizer Model Selector",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remote Ollama Scrapper Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Scrapper Model Selector",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanitizer Model Selector": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Sanitize extracted text",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Sanitizer Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrapper Model Selector": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Scraper Structured Output",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Scrap the web",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Local Documents Vector Store": {
+      "main": [
+        []
+      ]
+    },
+    "om File upload": {
       "main": [
         [
           {
@@ -520,7 +1409,7 @@
         ]
       ]
     },
-    "Url": {
+    "on Url Submission": {
       "main": [
         [
           {
@@ -531,12 +1420,176 @@
         ]
       ]
     },
-    "AI Agent - Scrap the web": {
+    "Ticket Indexation Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Ticket Indexer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ticket Indexation Model Selector": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ticket Indexation Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Ticket Indexer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On ticket submission": {
       "main": [
         [
           {
-            "node": "Qdrant Vector Store",
+            "node": "AI Agent - Ticket Indexer",
             "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Documents Embeddings Local Model": {
+      "ai_embedding": [
+        [
+          {
+            "node": "RAG Local Documents Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Ticket Indexer": {
+      "main": [
+        [
+          {
+            "node": "RAG Local Tickets Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tickets Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "RAG Local Tickets Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tickets Embeddings Local Model": {
+      "ai_embedding": [
+        [
+          {
+            "node": "RAG Local Tickets Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remote Ollama Ticket Indexer Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ticket Indexation Model Selector",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Ticket Indexer Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ticket Indexation Model Selector",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Image Analyser Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image Analyser Model Selector",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Sanitizer Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sanitizer Model Selector",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Scrapper Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Scrapper Model Selector",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Remote Ollama Image Analyser Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image Analyser Model Selector",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Analyser Model Selector": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Analyze Image",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Analyser Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Ticket Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent - Ticket Indexer",
+            "type": "ai_memory",
             "index": 0
           }
         ]
@@ -545,9 +1598,10 @@
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "252ad04d-dd51-424e-aa7d-e6dba87d977a",
+  "versionId": "c8e0b418-3e64-406d-aa71-f9a24dc35c0f",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "35e53b4e1c0deaab7d871949fef5124ac4432fe9906011927482989de82c5430"
