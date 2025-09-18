@@ -48,7 +48,7 @@ Ce diagramme illustre l'architecture de votre playground IA n8n local :
 - **🧠 Ollama** fournit les capacités de modèles de langage locaux (LLM) sur le port 11434
 - **🔍 Qdrant** gère le stockage et la recherche vectorielle pour les embeddings sur le port 6333
 - **🗄️ PostgreSQL** stocke les données relationnelles des workflows et métadonnées sur le port 5432
-- **🎭 playwright-mcp** gère l'automatisation des tests de navigateur sur le port 3000
+- **🎭 playwright-mcp** gère le scraping de navigateur sur le port 3000
 
 Tous ces services s'exécutent dans des conteneurs Podman et communiquent via un réseau Docker interne.
 
@@ -120,7 +120,7 @@ Utilisez les identifiants configurés dans `.env` :
 - **PostgreSQL** : Base de données relationnelle pour n8n
 - **Ollama** : Serveur de modèles de langage locaux (LLM)
 - **Qdrant** : Base de données vectorielle pour la recherche sémantique
-- **playwright-mcp** : Service d'automatisation de navigateur pour MCP (Model Context Protocol)
+- **playwright-mcp** : Service de scraping via navigateur pour MCP (Model Context Protocol)
 
 ![Credentials Ollama](./docs/img/credentials_ollama.png)
 
