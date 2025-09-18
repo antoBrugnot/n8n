@@ -10,12 +10,14 @@ flowchart TD
     
     n8n --> |Requêtes AI/LLM| Ollama[🧠 Ollama<br/>Local LLM Server<br/>Port 11434]
     n8n --> |Stockage/Recherche<br/>de vecteurs| Qdrant[🔍 Qdrant<br/>Vector Database<br/>Port 6333]
+    n8n --> |Scraping| Playwright-MCP[🎭 Playwright<br/>MCP Service<br/>Port 3000]
     n8n --> |Données relationnelles| PostgreSQL[🗄️ PostgreSQL<br/>Database<br/>Port 5432]
     
     Ollama --> |Réponses générées| n8n
     Qdrant --> |Résultats de recherche<br/>sémantique| n8n
     PostgreSQL --> |Données workflow| n8n
-    
+    Playwright-MCP --> |Données extraites| n8n
+
     n8n --> |Résultats finaux| User
     
     subgraph "🐳 Infrastructure Podman"
@@ -23,17 +25,20 @@ flowchart TD
         Qdrant
         PostgreSQL
         n8n
+        Playwright-MCP
     end
     
     classDef userClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     classDef n8nClass fill:#fff3e0,stroke:#e65100,stroke-width:3px
     classDef aiClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
     classDef dbClass fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef playwrightClass fill:#fbe9e7,stroke:#bf360c,stroke-width:2px
     
     class User userClass
     class n8n n8nClass
     class Ollama aiClass
     class Qdrant,PostgreSQL dbClass
+    class Playwright-MCP playwrightClass
 ```
 
 Ce diagramme illustre l'architecture de votre playground IA n8n local :
@@ -43,6 +48,7 @@ Ce diagramme illustre l'architecture de votre playground IA n8n local :
 - **🧠 Ollama** fournit les capacités de modèles de langage locaux (LLM) sur le port 11434
 - **🔍 Qdrant** gère le stockage et la recherche vectorielle pour les embeddings sur le port 6333
 - **🗄️ PostgreSQL** stocke les données relationnelles des workflows et métadonnées sur le port 5432
+- **🎭 playwright-mcp** gère l'automatisation des tests de navigateur sur le port 3000
 
 Tous ces services s'exécutent dans des conteneurs Podman et communiquent via un réseau Docker interne.
 
@@ -114,6 +120,7 @@ Utilisez les identifiants configurés dans `.env` :
 - **PostgreSQL** : Base de données relationnelle pour n8n
 - **Ollama** : Serveur de modèles de langage locaux (LLM)
 - **Qdrant** : Base de données vectorielle pour la recherche sémantique
+- **playwright-mcp** : Service d'automatisation de navigateur pour MCP (Model Context Protocol)
 
 ![Credentials Ollama](./docs/img/credentials_ollama.png)
 
@@ -162,12 +169,7 @@ n8n/
 ├── docs/                    # Documentation et images
 ├── .github/                 # Instructions et configurations GitHub
 ├── workflows/               # Workflows n8n (import automatique)
-│   ├── Indexation.json
-│   ├── Mail.json
-│   └── Search in Index.json
 ├── credentials/             # Credentials n8n (import automatique)
-│   ├── qdrant_credentials.json
-│   ├── ollama_credentials.json
 ├── vector-store-qdrant/     # Stockage des vecteurs Qdrant
 ├── backups/                 # Sauvegardes de la base de données
 ├── docker-compose.yml       # Configuration des services
@@ -185,13 +187,14 @@ n8n/
 
 - Ollama : `qwen2.5:3b` (best tool support, multilingual)
 - Qdrant : `nomic-embed-text` (embedded for QDrant VectorStore, 768 dimensions, CPU-optimized)
+- Vision : `granite-vision-3.2-2b` (image)
 
 ## Workflows testés
 
 - Indexation de documents
 - Recherche sémantique
 - Automatisation de classification des emails
-
+- Chatbot de support client
 
 ## 🛠️ Commandes utiles
 
@@ -308,6 +311,7 @@ Ce projet inclut un système d'import automatique pour vos workflows et credenti
 ### 📁 Structure des dossiers
 ```
 workflows/          # Vos fichiers JSON de workflows
+├── Customer Support Chat.json
 ├── Indexation.json
 ├── Mail.json
 └── Search in Index.json
@@ -386,6 +390,7 @@ Pour un environnement de production, considérez :
 - [Configuration n8n](https://docs.n8n.io/hosting/configuration/)
 - [Documentation QDrant](https://qdrant.tech/documentation)
 - [Documentation Ollama](https://ollama.com/docs)
+- [Documentation playwright-mcp](https://github.com/microsoft/playwright-mcp)
 
 ## 🚀 CI/CD et Validation
 
@@ -450,3 +455,9 @@ docker compose up --dry-run
 Si vous perdez l'accès à vos workflows après une réinstallation, vérifiez que :
 - La clé `N8N_ENCRYPTION_KEY` n'a pas changé
 - Le volume `n8n_storage` contient toujours vos données
+
+### Oubli du mot de passe admin
+1. Arrêtez n8n : `podman compose stop n8n`
+2. Modifiez le mot de passe dans `.env` (`N8N_BASIC_AUTH_PASSWORD`)
+3. Redémarrez n8n : `podman compose up -d n8n`
+4. Connectez-vous avec le nouveau mot de passe
